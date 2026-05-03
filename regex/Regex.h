@@ -3,7 +3,6 @@
 
 #include "../smc/Analyz.h"
 #include <regex>
-#include <fstream>
 
 class Regex : public Analyz {
     std::regex fullPattern;
@@ -49,16 +48,9 @@ public:
         return false;
     }
 
-    void checkFile(std::ifstream& file) override {
-        std::string line;
-        while (std::getline(file, line)) {
-            checkString(line);
-        }
-    }
-
 private:
     static int countElements(const std::string& s) {
-        if (s.find_first_not_of(" \t\n\r") == std::string::npos) return 0;
+        if (s.find_first_not_of('\n') == std::string::npos) return 0;
         int count = 1;
         for (char c : s) if (c == ',') count++;
         return count;

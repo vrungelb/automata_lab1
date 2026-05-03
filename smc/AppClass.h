@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <string>
-#include <fstream>
 #include "Analyz.h"
 #include "Sm_sm.h"
 
@@ -22,7 +21,6 @@ public:
     void setTypeShort() { _currentType = "short"; }
     void setTypeLong()  { _currentType = "long"; }
     bool checkString(std::string& str) override;
-    void checkFile(std::ifstream& file) override;
     static bool isLetter (char c) { return isalpha(c); }
     static bool isAlnum  (char c) { return isalnum(c); }
     static bool isDigit  (char c) { return isdigit(c); }
