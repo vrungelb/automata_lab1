@@ -1,0 +1,116 @@
+%start Map1::Start
+%class AppClass
+%header AppClass.h
+
+%map Map1
+%%
+
+Default
+{
+    symbol(c : char)    Error    { error(); }
+    EOS                 Error    { error(); }
+}
+Start
+{
+    symbol(c : char) [c == 'i']    charI    {}
+    symbol(c : char) [c == 's']    charS    {}
+    symbol(c : char) [c == 'l']    charL    {}
+}
+charI
+{
+    symbol(c : char) [c == 'n']    charIn    {}
+}
+charIn
+{
+    symbol(c : char) [c == 't']    charInt    {}
+}
+charInt
+{
+    symbol(c : char) [c == ' ']    NameFirst    {setTypeInt();}
+}
+charS
+{
+    symbol(c : char) [c == 'h']    charSh    {}
+}
+charSh
+{
+    symbol(c : char) [c == 'o']    charSho    {}
+}
+charSho
+{
+    symbol(c : char) [c == 'r']    charShor    {}
+}
+charShor
+{
+    symbol(c : char) [c == 't']    charShort    {}
+}
+charShort
+{
+    symbol(c : char) [c == ' ']    NameFirst    {setTypeShort();}
+}
+charL
+{
+    symbol(c : char) [c == 'o']    charLo    {}
+}
+charLo
+{
+    symbol(c : char) [c == 'n']    charLon    {}
+}
+charLon
+{
+    symbol(c : char) [c == 'g']    charLong    {}
+}
+charLong
+{
+    symbol(c : char) [c == ' ']    NameFirst    {setTypeLong();}
+}
+NameFirst
+{
+    symbol(c : char) [ctxt.isLetter(c)]    NameRest    { addNameChar(c); }
+}
+NameRest
+{
+    symbol(c : char) [ctxt.isAlnum(c) && ctxt.nameLen() < 16]    NameRest      { addNameChar(c); }
+    symbol(c : char) [c == 91]     CountFirst    {}
+}
+CountFirst
+{
+    symbol(c : char) [ctxt.isNonZero(c)]    CountRest    { addCountChar(c); }
+}
+
+CountRest
+{
+    symbol(c : char) [ctxt.isDigit(c) && ctxt.countLen() < 9]   CountRest      { addCountChar(c); }
+    symbol(c : char) [c == 93]         ExpectEqual    {}
+}
+ExpectEqual
+{
+    symbol(c : char) [c == '=']    ExpectLBrace    {}
+}
+ExpectLBrace
+{
+    symbol(c : char) [c == '{']    LitStart    {}
+}
+LitStart
+{
+    symbol(c : char) [c == '-']               LitAfterMinus    {}
+    symbol(c : char) [ctxt.isDigit(c)]        LitDigits        { incLit(); }
+}
+LitAfterMinus
+{
+    symbol(c : char) [ctxt.isDigit(c)]    LitDigits    { incLit(); }
+}
+LitDigits
+{
+    symbol(c : char) [ctxt.isDigit(c)]  LitDigits    {}
+    symbol(c : char) [c == ',']  LitStart     {}
+    symbol(c : char) [c == '}']  final          {}
+}
+final
+{
+    EOS    Suc    { Suc(); }
+}
+Suc   {}
+Error {}
+
+%%
