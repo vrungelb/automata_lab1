@@ -1,70 +1,91 @@
 %{
 #include "Flex.h"
+#include <algorithm>
+#include <cctype>
 #include <string>
-#undef YY_DECL
+
+#undef  YY_DECL
 #define YY_DECL int Flex::yylex()
 %}
 
+%option batch
 %option c++
 %option noyywrap
 %option yyclass="Flex"
 
-%x STATE_NAME STATE_SIZE STATE_LIST STATE_ERROR
+%x S_AFTER_TYPE S_NAME S_BRACKETS
+%x S_LIT_START S_LIT_DIGITS S_AFTER_RBRACE S_FAIL
 
-TYPE       "int"|"short"|"long"
-ID         [a-zA-Z][a-zA-Z0-9]*
+LETTER     [a-zA-Z]
 DIGIT      [0-9]
 NZ_DIGIT   [1-9]
+ALNUM      [a-zA-Z0-9]
+ID         {LETTER}{ALNUM}*
 SIZE       {NZ_DIGIT}{DIGIT}*
 LITERAL    "-"?{DIGIT}+
-WS         [ \t]+
+ANY        (.|\n)
 
 %%
 
-<INITIAL>{
-    {TYPE}      { this->current_type = yytext; BEGIN(STATE_NAME); }
-    .|\n        ;
-}
+<INITIAL>"int"          { current_type = "int";   BEGIN(S_AFTER_TYPE); }
+<INITIAL>"short"        { current_type = "short"; BEGIN(S_AFTER_TYPE); }
+<INITIAL>"long"         { current_type = "long";  BEGIN(S_AFTER_TYPE); }
+<INITIAL>{ANY}          { BEGIN(S_FAIL); }
 
-<STATE_NAME>{
-    {WS}        ;
-    {ID}        { this->current_name = yytext; BEGIN(STATE_SIZE); }
-    .           { BEGIN(STATE_ERROR); }
-}
+<S_AFTER_TYPE>" "       { BEGIN(S_NAME); }
+<S_AFTER_TYPE>{ANY}     { BEGIN(S_FAIL); }
 
-<STATE_SIZE>{
-    "["         ;
-    {SIZE}      { this->declared_size = std::stoi(yytext); }
-    "]"         { }
-    "="         ;
-    "{"         { this->literal_count = 0; BEGIN(STATE_LIST); }
-    .           { BEGIN(STATE_ERROR); }
-}
-
-<STATE_LIST>{
-    {LITERAL}   { this->literal_count++; }
-    ","         ;
-"}" {
-    if (this->declared_size != -1 && this->literal_count != this->declared_size) {
-        this->is_valid = false;
-    }
+<S_NAME>{ID} {
+    if (yyleng > 16) { BEGIN(S_FAIL); }
     else {
-        if (this->types.find(this->current_name) == this->types.end()) {
-            this->types[this->current_name] = this->current_type;
-        } else if (this->types[this->current_name] != this->current_type) {
-            this->conflicts.insert(this->current_name + " - " + this->types[this->current_name]);
-        }
-        this->params[this->current_name]++;
-        this->is_valid = true;
+        current_name.assign(yytext, yyleng);
+        std::transform(current_name.begin(), current_name.end(),
+                       current_name.begin(),
+                       [](unsigned char c){ return std::tolower(c); });
+        BEGIN(S_BRACKETS);
     }
-    BEGIN(INITIAL);
 }
-    .           { BEGIN(STATE_ERROR); }
-}
+<S_NAME>{ANY}           { BEGIN(S_FAIL); }
 
-<STATE_ERROR>{
-    \n          { this->is_valid = false; BEGIN(INITIAL); }
-    .           ;
+
+<S_BRACKETS>"["{SIZE}"]={" {
+    int num_len = yyleng - 4;          // вычитаем '[', ']', '=', '{'
+    if (num_len > 9) { BEGIN(S_FAIL); }
+    else {
+        std::string num(yytext + 1, num_len);
+        declared_size  = std::stoi(num);
+        literal_count  = 0;
+        BEGIN(S_LIT_START);
+    }
 }
+<S_BRACKETS>{ANY}       { BEGIN(S_FAIL); }
+
+<S_LIT_START>{LITERAL}  { literal_count++; BEGIN(S_LIT_DIGITS); }
+<S_LIT_START>{ANY}      { BEGIN(S_FAIL); }
+
+<S_LIT_DIGITS>","       { BEGIN(S_LIT_START); }
+<S_LIT_DIGITS>"}"       {
+    if (literal_count == declared_size) {
+        if (types.find(current_name) == types.end()) {
+            types[current_name] = current_type;
+        } else {
+            conflicts.insert(current_name + " - " + types[current_name]);
+        }
+        params[current_name]++;
+        isAcceptable = true;
+    } else {
+        isAcceptable = false;
+    }
+    BEGIN(S_AFTER_RBRACE);
+}
+<S_LIT_DIGITS>{ANY}     { BEGIN(S_FAIL); }
+
+<S_AFTER_RBRACE>\n      { BEGIN(INITIAL); return 0; }
+<S_AFTER_RBRACE>.       { isAcceptable = false; BEGIN(S_FAIL); }
+
+<S_FAIL>.               ;
+<S_FAIL>\n              { BEGIN(INITIAL); return 0; }
+
+<*><<EOF>>              { BEGIN(INITIAL); return 0; }
 
 %%

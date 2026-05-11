@@ -6,6 +6,8 @@
 #include "regex/Regex.h"
 #include "smc/Analyz.h"
 #include "smc/AppClass.h"
+#include "flex/Flex.h"
+#include "strgen.h"
 
 using namespace statemap;
 
@@ -23,6 +25,7 @@ int main() {
         std::cout << "Choose an engine:" << std::endl;
         std::cout << "1. Regular" << std::endl;
         std::cout << "2. SMC" << std::endl;
+        std::cout << "3. Flex" << std::endl;
         std::cin >> option;
 
         if (option == 1) {
@@ -31,19 +34,23 @@ int main() {
         } else if (option == 2) {
             analyzer = new AppClass();
             name += "smc";
+        } else if (option == 3) {
+            analyzer = new Flex();
+            name += "flex";
         } else {
             std::cout << "Invalid choice" << std::endl;
             return 1;
         }
 
         option = 0;
-        while (option != 5 && std::cin.good()) {
+        while (option != 6 && std::cin.good()) {
             std::cout << "Choose an option:" << std::endl;
             std::cout << "1. Read from file" << std::endl;
             std::cout << "2. Write to file" << std::endl;
             std::cout << "3. Input" << std::endl;
             std::cout << "4. Output" << std::endl;
-            std::cout << "5. Exit" << std::endl;
+            std::cout << "5. Generate test file" << std::endl;
+            std::cout << "6. Exit" << std::endl;
             std::cin >> option;
 
             switch (option) {
@@ -64,18 +71,17 @@ int main() {
                     std::cout << "Successfully read from file!" << std::endl;
                     break;
                 }
-                case 2:
-                    out.open("result.txt");
+                case 2: {
+                    std::string outName = "result_" + name + ".txt";
+                    out.open(outName);
                     if (!out.is_open()) {
                         std::cout << "File could not be opened!" << std::endl;
                         break;
                     }
 
-                    // Записываем таблицу
                     out << "--- Variables Table ---" << std::endl;
                     out << analyzer->getTable() << std::endl;
 
-                    // Записываем конфликты
                     out << "--- Conflicts ---" << std::endl;
                     if (analyzer->conflicts.empty()) {
                         out << "None" << std::endl;
@@ -86,8 +92,9 @@ int main() {
                     }
 
                     out.close();
-                    std::cout << "Successfully written to result.txt" << std::endl;
+                    std::cout << "Successfully written to " << outName << std::endl;
                     break;
+                }
                 case 3:
                     std::cout << "Enter the string: " << std::endl;
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -106,14 +113,39 @@ int main() {
                         }
                     }
                     break;
-                case 5:
+                case 5: {
+                    int genMode = 0;
+                    int count = 0;
+                    std::cout << "Generation mode (1 - only valid, 2 - mixed): ";
+                    std::cin >> genMode;
+                    if (genMode != 1 && genMode != 2) {
+                        std::cout << "Invalid mode" << std::endl;
+                        break;
+                    }
+                    std::cout << "Number of strings: ";
+                    std::cin >> count;
+                    if (count <= 0) {
+                        std::cout << "Invalid count" << std::endl;
+                        break;
+                    }
+                    const std::string genPath = "tests.txt";
+                    auto stats = strgen::generateToFile(genPath, count, genMode);
+                    if (stats.good == 0 && stats.bad == 0) {
+                        std::cout << "Failed to write to " << genPath << std::endl;
+                        break;
+                    }
+                    std::cout << "Generated " << stats.good << " valid and "
+                              << stats.bad << " invalid strings to " << genPath << std::endl;
+                    break;
+                }
+                case 6:
                     std::cout << "Exit:" << std::endl;
                     break;
                 default:
                     std::cout << "Invalid option" << std::endl;
                     break;
             }
-            if (option != 5) {
+            if (option != 6) {
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
         }

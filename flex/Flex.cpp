@@ -1,20 +1,19 @@
 #include "Flex.h"
 #include <sstream>
-#include <fstream>
+
 Flex::Flex() = default;
 
-bool Flex::checkString(const std::string& str) {
+bool Flex::checkString(std::string& str) {
+    isAcceptable    = false;
+    current_type.clear();
+    current_name.clear();
+    declared_size   = -1;
+    literal_count   = 0;
+
     std::string prepared = str + "\n";
-    std::stringstream ss(prepared);
-    this->is_valid = false;
-    this->declared_size = -1;
-    this->literal_count = 0;
+    std::istringstream ss(prepared);
     switch_streams(&ss, nullptr);
     yylex();
-    return is_valid;
-}
 
-void Flex::checkFile(std::ifstream &file) {
-    switch_streams(&file, nullptr);
-    yylex();
+    return isAcceptable;
 }
