@@ -33,12 +33,15 @@ add_executable(lab1
         flex/Flex.h
         strgen/strgen.cpp
         strgen/strgen.h
+        bench/Bench.cpp
+        bench/Bench.h
         ${FLEX_MyLexer_OUTPUTS}
 )
 target_include_directories(lab1 PRIVATE
         ${CMAKE_SOURCE_DIR}/smc
         ${CMAKE_SOURCE_DIR}/flex
         ${CMAKE_SOURCE_DIR}/strgen
+        ${CMAKE_SOURCE_DIR}/bench
         ${CMAKE_CURRENT_BINARY_DIR}
         ${SMC_RUNTIME}
         ${FLEX_INCLUDE_DIRS}

@@ -25,6 +25,14 @@ public:
         }
     }
 
+    // сброс накопленного состояния между прогонами в бенчмарке
+    virtual void reset() {
+        params.clear();
+        types.clear();
+        conflicts.clear();
+        isAcceptable = false;
+    }
+
     std::string getTable() const {
         std::string t;
         for (const auto& [key, value] : params) {

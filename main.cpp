@@ -7,7 +7,8 @@
 #include "smc/Analyz.h"
 #include "smc/AppClass.h"
 #include "flex/Flex.h"
-#include "strgen.h"
+#include "strgen/strgen.h"
+#include "bench/Bench.h"
 
 using namespace statemap;
 
@@ -43,14 +44,15 @@ int main() {
         }
 
         option = 0;
-        while (option != 6 && std::cin.good()) {
+        while (option != 7 && std::cin.good()) {
             std::cout << "Choose an option:" << std::endl;
             std::cout << "1. Read from file" << std::endl;
             std::cout << "2. Write to file" << std::endl;
             std::cout << "3. Input" << std::endl;
             std::cout << "4. Output" << std::endl;
             std::cout << "5. Generate test file" << std::endl;
-            std::cout << "6. Exit" << std::endl;
+            std::cout << "6. Benchmark" << std::endl;
+            std::cout << "7. Exit" << std::endl;
             std::cin >> option;
 
             switch (option) {
@@ -116,9 +118,9 @@ int main() {
                 case 5: {
                     int genMode = 0;
                     int count = 0;
-                    std::cout << "Generation mode (1 - only valid, 2 - mixed): ";
+                    std::cout << "Generation mode (1 - only valid, 2 - mixed, 3 - only invalid): ";
                     std::cin >> genMode;
-                    if (genMode != 1 && genMode != 2) {
+                    if (genMode != 1 && genMode != 2 && genMode != 3) {
                         std::cout << "Invalid mode" << std::endl;
                         break;
                     }
@@ -138,14 +140,23 @@ int main() {
                               << stats.bad << " invalid strings to " << genPath << std::endl;
                     break;
                 }
-                case 6:
+                case 6: {
+                    int dataMode = 0;
+                    std::cout << "Data quality (1 - only valid, 2 - mixed, 3 - only invalid): ";
+                    std::cin >> dataMode;
+                    if (!bench::runBenchmark(dataMode)) {
+                        std::cout << "Benchmark failed" << std::endl;
+                    }
+                    break;
+                }
+                case 7:
                     std::cout << "Exit:" << std::endl;
                     break;
                 default:
                     std::cout << "Invalid option" << std::endl;
                     break;
             }
-            if (option != 6) {
+            if (option != 7) {
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
         }
