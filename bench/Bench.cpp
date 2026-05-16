@@ -18,17 +18,17 @@
 namespace bench {
 namespace {
 
-// фиксированный средний размер массива в Проходе 1
+// фиксированный средний размер массива в первом проходе
 constexpr int LINES_PASS_ARRAY_SIZE = 10;
 
-// фиксированное число строк в Проходе 2
+// фиксированное число строк во втором проходе
 constexpr int SIZE_PASS_LINES = 1000;
 
 // число прогонов на одну точку
 constexpr int RUNS_PER_POINT = 5;
 
-const std::array<int, 7> N_LINES_POINTS = {100, 500, 1000, 5000, 10000, 50000, 100000};
-const std::array<int, 5> ARRAY_SIZE_POINTS = {10, 100, 1000, 10000, 100000};
+const std::array<int, 7> N_LINES_POINTS = {100, 500, 1000, 5000, 10000, 50000, 100000}; // для фикс. кол-ва элементов
+const std::array<int, 7> ARRAY_SIZE_POINTS = {10, 50, 200, 1000, 5000, 20000, 50000};   // для фикс. кол-ва строк
 
 std::string suffixForMode(int dataMode) {
     if (dataMode == 1) return "valid";
@@ -49,13 +49,13 @@ std::vector<std::string> loadLines(const std::string& path) {
     return lines;
 }
 
-// медиана из вектора double (модифицирует входной вектор сортировкой)
+// медиана из вектора double
 double median(std::vector<double>& v) {
-    std::sort(v.begin(), v.end());
+    std::ranges::sort(v);
     return v[v.size() / 2];
 }
 
-// один замер: reset, прогон по всем строкам, возврат секунд
+// один прогон по всем строкам, возврат секунд
 double measureOnce(Analyz& analyzer, std::vector<std::string>& lines) {
     analyzer.reset();
     auto start = std::chrono::high_resolution_clock::now();
@@ -68,10 +68,10 @@ double measureOnce(Analyz& analyzer, std::vector<std::string>& lines) {
 }
 
 // несколько прогонов с тем же входом, возврат медианы
-double measureMedian(Analyz& analyzer, std::vector<std::string>& lines, const int runs) {
+double measureMedian(Analyz& analyzer, std::vector<std::string>& lines) {
     std::vector<double> times;
-    times.reserve(runs);
-    for (int i = 0; i < runs; i++) {
+    times.reserve(RUNS_PER_POINT);
+    for (int i = 0; i < RUNS_PER_POINT; i++) {
         times.push_back(measureOnce(analyzer, lines));
     }
     return median(times);
@@ -88,15 +88,15 @@ EnginePoint measureAllEngines(std::vector<std::string>& lines) {
 
     {
         Regex eng;
-        p.regexTime = measureMedian(eng, lines, RUNS_PER_POINT);
+        p.regexTime = measureMedian(eng, lines);
     }
     {
         AppClass eng;
-        p.smcTime = measureMedian(eng, lines, RUNS_PER_POINT);
+        p.smcTime = measureMedian(eng, lines);
     }
     {
         Flex eng;
-        p.flexTime = measureMedian(eng, lines, RUNS_PER_POINT);
+        p.flexTime = measureMedian(eng, lines);
     }
     return p;
 }
@@ -111,7 +111,7 @@ bool passByLines(int dataMode, const std::string& csvPath) {
 
     const std::string tmpPath = "bench_tmp_lines.txt";
 
-    std::cout << "--- Pass 1: time vs number of lines (array size = "
+    std::cout << "--- Pass 1: time and number of lines (array size = "
               << LINES_PASS_ARRAY_SIZE << ") ---" << std::endl;
 
     for (int n : N_LINES_POINTS) {
@@ -146,7 +146,7 @@ bool passBySize(int dataMode, const std::string& csvPath) {
 
     const std::string tmpPath = "bench_tmp_size.txt";
 
-    std::cout << "--- Pass 2: time vs array size (lines = "
+    std::cout << "--- Pass 2: time and array size (lines = "
               << SIZE_PASS_LINES << ") ---" << std::endl;
 
     for (int sz : ARRAY_SIZE_POINTS) {
@@ -188,7 +188,7 @@ bool runBenchmark(int dataMode) {
     if (!passByLines(dataMode, linesCsv)) return false;
     if (!passBySize(dataMode, sizeCsv))   return false;
 
-    std::cout << "Benchmark complete." << std::endl;
+    std::cout << "\033[32mBenchmark complete.\033[0m" << std::endl;
     return true;
 }
 

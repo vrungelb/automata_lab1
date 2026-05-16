@@ -46,3 +46,5 @@ target_include_directories(lab1 PRIVATE
         ${SMC_RUNTIME}
         ${FLEX_INCLUDE_DIRS}
 )
+
+target_link_options(lab1 PRIVATE "-Wl,-z,stack-size=1073741824")
