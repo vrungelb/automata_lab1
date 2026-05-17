@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(lab1t)
+project(lab1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # SMC
@@ -47,4 +47,3 @@ target_include_directories(lab1 PRIVATE
         ${FLEX_INCLUDE_DIRS}
 )
 
-target_link_options(lab1 PRIVATE "-Wl,-z,stack-size=1073741824")
