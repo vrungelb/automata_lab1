@@ -10,7 +10,7 @@ class Regex : public Analyz {
 public:
     Regex()
         : fullPattern(
-              R"((int|short|long)\s([a-zA-Z][a-zA-Z0-9]{0,15})\[([1-9][0-9]{0,8})\]=\{(-?[0-9]+(?:,-?[0-9]+)*)\})",
+              R"((int|short|long)\s([a-zA-Z][a-zA-Z0-9]*)\[([1-9][0-9]*)\]=\{(-?[0-9]+(?:,-?[0-9]+)*)\})",
               std::regex::optimize
           )
     {}

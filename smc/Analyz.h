@@ -2,7 +2,7 @@
 #define LAB1T_ANALYZ_H
 
 #include <fstream>
-#include <set>
+#include <unordered_set>
 #include <string>
 #include <unordered_map>
 
@@ -11,7 +11,7 @@ public:
     bool isAcceptable = false;
     std::unordered_map<std::string, int> params;
     std::unordered_map<std::string, std::string> types;
-    std::set<std::string> conflicts;
+    std::unordered_set<std::string> conflicts;
 
     virtual bool checkString(std::string& str) = 0;
 

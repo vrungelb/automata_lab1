@@ -70,7 +70,7 @@ NameFirst
 }
 NameRest
 {
-    symbol(c : char) [ctxt.isAlnum(c) && ctxt.nameLen() < 16]    NameRest      { addNameChar(c); }
+    symbol(c : char) [ctxt.isAlnum(c)]    NameRest      { addNameChar(c); }
     symbol(c : char) [c == 91]     CountFirst    {}
 }
 CountFirst
@@ -80,7 +80,7 @@ CountFirst
 
 CountRest
 {
-    symbol(c : char) [ctxt.isDigit(c) && ctxt.countLen() < 9]   CountRest      { addCountChar(c); }
+    symbol(c : char) [ctxt.isDigit(c)]   CountRest      { addCountChar(c); }
     symbol(c : char) [c == 93]         ExpectEqual    {}
 }
 ExpectEqual

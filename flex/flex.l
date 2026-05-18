@@ -14,7 +14,7 @@
 %option yyclass="Flex"
 
 %x S_AFTER_TYPE S_NAME S_BRACKETS
-%x S_LIT_START S_LIT_DIGITS S_AFTER_RBRACE S_FAIL
+%x S_LIT_START S_LIT_DIGITS S_AFTER_RBRACE
 
 LETTER     [a-zA-Z]
 DIGIT      [0-9]
@@ -30,38 +30,31 @@ ANY        (.|\n)
 <INITIAL>"int"          { current_type = "int";   BEGIN(S_AFTER_TYPE); }
 <INITIAL>"short"        { current_type = "short"; BEGIN(S_AFTER_TYPE); }
 <INITIAL>"long"         { current_type = "long";  BEGIN(S_AFTER_TYPE); }
-<INITIAL>{ANY}          { BEGIN(S_FAIL); }
+<INITIAL>{ANY}          { BEGIN(INITIAL); return 0; }
 
 <S_AFTER_TYPE>" "       { BEGIN(S_NAME); }
-<S_AFTER_TYPE>{ANY}     { BEGIN(S_FAIL); }
+<S_AFTER_TYPE>{ANY}     { BEGIN(INITIAL); return 0; }
 
 <S_NAME>{ID} {
-    if (yyleng > 16) { BEGIN(S_FAIL); }
-    else {
-        current_name.assign(yytext, yyleng);
-        std::transform(current_name.begin(), current_name.end(),
-                       current_name.begin(),
-                       [](unsigned char c){ return std::tolower(c); });
-        BEGIN(S_BRACKETS);
-    }
+    current_name.assign(yytext, yyleng);
+    std::transform(current_name.begin(), current_name.end(),
+                   current_name.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    BEGIN(S_BRACKETS);
 }
-<S_NAME>{ANY}           { BEGIN(S_FAIL); }
-
+<S_NAME>{ANY}           { BEGIN(INITIAL); return 0; }
 
 <S_BRACKETS>"["{SIZE}"]={" {
-    int num_len = yyleng - 4;          // вычитаем '[', ']', '=', '{'
-    if (num_len > 9) { BEGIN(S_FAIL); }
-    else {
-        std::string num(yytext + 1, num_len);
-        declared_size  = std::stoi(num);
-        literal_count  = 0;
-        BEGIN(S_LIT_START);
-    }
+    int num_len = yyleng - 4;
+    std::string num(yytext + 1, num_len);
+    declared_size  = std::stoi(num);
+    literal_count  = 0;
+    BEGIN(S_LIT_START);
 }
-<S_BRACKETS>{ANY}       { BEGIN(S_FAIL); }
+<S_BRACKETS>{ANY}       { BEGIN(INITIAL); return 0; }
 
 <S_LIT_START>{LITERAL}  { literal_count++; BEGIN(S_LIT_DIGITS); }
-<S_LIT_START>{ANY}      { BEGIN(S_FAIL); }
+<S_LIT_START>{ANY}      { BEGIN(INITIAL); return 0; }
 
 <S_LIT_DIGITS>","       { BEGIN(S_LIT_START); }
 <S_LIT_DIGITS>"}"       {
@@ -78,13 +71,10 @@ ANY        (.|\n)
     }
     BEGIN(S_AFTER_RBRACE);
 }
-<S_LIT_DIGITS>{ANY}     { BEGIN(S_FAIL); }
+<S_LIT_DIGITS>{ANY}     { BEGIN(INITIAL); return 0; }
 
 <S_AFTER_RBRACE>\n      { BEGIN(INITIAL); return 0; }
-<S_AFTER_RBRACE>.       { isAcceptable = false; BEGIN(S_FAIL); }
-
-<S_FAIL>.               ;
-<S_FAIL>\n              { BEGIN(INITIAL); return 0; }
+<S_AFTER_RBRACE>.       { isAcceptable = false; BEGIN(INITIAL); return 0; }
 
 <*><<EOF>>              { BEGIN(INITIAL); return 0; }
 

@@ -19,7 +19,7 @@ namespace bench {
 namespace {
 
 // фиксированный средний размер массива в первом проходе
-constexpr int LINES_PASS_ARRAY_SIZE = 10;
+constexpr int LINES_PASS_ARRAY_SIZE = 100;
 
 // фиксированное число строк во втором проходе
 constexpr int SIZE_PASS_LINES = 1000;
