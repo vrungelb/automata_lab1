@@ -7,12 +7,22 @@
 #include <unordered_map>
 
 class Analyz {
-public:
+protected:
     bool isAcceptable = false;
     std::unordered_map<std::string, int> params;
     std::unordered_map<std::string, std::string> types;
     std::unordered_set<std::string> conflicts;
 
+    void recordValid(const std::string& arrName, const std::string& type) {
+        if (!types.contains(arrName)) {
+            types[arrName] = type;
+        } else {
+            conflicts.insert(arrName + " - " + types[arrName]);
+        }
+        params[arrName]++;
+    }
+
+public:
     virtual bool checkString(std::string& str) = 0;
 
     virtual void checkFile(std::ifstream& file) {
@@ -39,6 +49,10 @@ public:
             t += key + "=" + std::to_string(value) + "\n";
         }
         return t;
+    }
+
+    const std::unordered_set<std::string>& getConflicts() const {
+        return conflicts;
     }
 
     virtual ~Analyz() = default;

@@ -2,6 +2,7 @@
 #include "Flex.h"
 #include <algorithm>
 #include <cctype>
+#include <stdexcept>
 #include <string>
 
 #undef  YY_DECL
@@ -20,8 +21,8 @@ LETTER     [a-zA-Z]
 DIGIT      [0-9]
 NZ_DIGIT   [1-9]
 ALNUM      [a-zA-Z0-9]
-ID         {LETTER}{ALNUM}*
-SIZE       {NZ_DIGIT}{DIGIT}*
+ID         {LETTER}{ALNUM}{0,15}
+SIZE       {NZ_DIGIT}{DIGIT}{0,8}
 LITERAL    "-"?{DIGIT}+
 ANY        (.|\n)
 
@@ -47,35 +48,44 @@ ANY        (.|\n)
 <S_BRACKETS>"["{SIZE}"]={" {
     int num_len = yyleng - 4;
     std::string num(yytext + 1, num_len);
-    declared_size  = std::stoi(num);
-    literal_count  = 0;
+    try {
+        declared_size = std::stoll(num);
+    } catch (const std::out_of_range&) {
+        isAcceptable = false;
+        BEGIN(INITIAL);
+        return 0;
+    }
+    literal_count = 0;
     BEGIN(S_LIT_START);
 }
 <S_BRACKETS>{ANY}       { BEGIN(INITIAL); return 0; }
 
-<S_LIT_START>{LITERAL}  { literal_count++; BEGIN(S_LIT_DIGITS); }
+<S_LIT_START>{LITERAL}  {
+    if (++literal_count > declared_size) {
+        isAcceptable = false;
+        BEGIN(INITIAL);
+        return 0;
+    }
+    BEGIN(S_LIT_DIGITS);
+}
 <S_LIT_START>{ANY}      { BEGIN(INITIAL); return 0; }
 
 <S_LIT_DIGITS>","       { BEGIN(S_LIT_START); }
 <S_LIT_DIGITS>"}"       {
-    if (literal_count == declared_size) {
-        if (types.find(current_name) == types.end()) {
-            types[current_name] = current_type;
-        } else {
-            conflicts.insert(current_name + " - " + types[current_name]);
-        }
-        params[current_name]++;
-        isAcceptable = true;
-    } else {
-        isAcceptable = false;
-    }
+    isAcceptable = (literal_count == declared_size);
     BEGIN(S_AFTER_RBRACE);
 }
 <S_LIT_DIGITS>{ANY}     { BEGIN(INITIAL); return 0; }
 
-<S_AFTER_RBRACE>\n      { BEGIN(INITIAL); return 0; }
-<S_AFTER_RBRACE>.       { isAcceptable = false; BEGIN(INITIAL); return 0; }
+<S_AFTER_RBRACE>{ANY}   { isAcceptable = false; BEGIN(INITIAL); return 0; }
+<S_AFTER_RBRACE><<EOF>> {
+    if (isAcceptable) {
+        recordValid(current_name, current_type);
+    }
+    BEGIN(INITIAL);
+    return 0;
+}
 
-<*><<EOF>>              { BEGIN(INITIAL); return 0; }
+<INITIAL,S_AFTER_TYPE,S_NAME,S_BRACKETS,S_LIT_START,S_LIT_DIGITS><<EOF>> { isAcceptable = false; BEGIN(INITIAL); return 0; }
 
 %%

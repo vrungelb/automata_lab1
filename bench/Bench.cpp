@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "../smc/Analyz.h"
+#include "../Analyz.h"
 #include "../smc/AppClass.h"
 #include "../regex/Regex.h"
 #include "../flex/Flex.h"

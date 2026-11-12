@@ -4,14 +4,14 @@
 
 #include <iostream>
 #include <string>
-#include "Analyz.h"
+#include "../Analyz.h"
 #include "Sm_sm.h"
 
 
 class AppClass : public Analyz {
     SmContext _fsm;
     std::string _arrName;
-    std::string _countStr;
+    int         _countLen;
     int         _litCount;       // подсчит. кол-во элементов массива
     long long   _declaredCount;  // заявл. кол-во элементов массива
     std::string _currentType;
@@ -25,14 +25,14 @@ public:
     static bool isAlnum  (char c) { return isalnum(c); }
     static bool isDigit  (char c) { return isdigit(c); }
     static bool isNonZero(char c) { return c >= '1' && c <= '9';}
-    size_t nameLen() const { return _arrName.size();  }  // геттер длины имени
-    size_t countLen() const { return _countStr.size(); } // геттер длины строки кв. скобок
+    size_t nameLen() const { return _arrName.size(); }  // геттер длины имени
+    int  countLen() const { return _countLen; }         // геттер длины строки кв. скобок
     int  litCount() const { return _litCount;}
     long long declaredCount() const { return _declaredCount; }
-    void addNameChar (char c) { _arrName  += static_cast<char>(std::tolower(c)); }
+    void addNameChar (char c) { _arrName += static_cast<char>(std::tolower(static_cast<unsigned char>(c))); }
     void addCountChar(char c) {
-        _countStr += c;
-        _declaredCount = std::stoll(_countStr);
+        ++_countLen;
+        _declaredCount = _declaredCount * 10 + (c - '0');
     }
     void incLit() {
         ++_litCount;

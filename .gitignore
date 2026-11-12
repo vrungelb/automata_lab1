@@ -43,6 +43,18 @@
 build/
 Build/
 build-*/
+cmake-build-*/
+
+# Generated SMC / Flex sources
+Sm_sm.cpp
+Sm_sm.h
+lex.yy.cc
+
+# Generated test/benchmark outputs
+tests.txt
+bench_tmp_*.txt
+bench_*.csv
+result_*.txt
 
 # CMake generated files
 CMakeFiles/

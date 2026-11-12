@@ -24,7 +24,7 @@ add_executable(lab1
         main.cpp
         smc/AppClass.cpp
         smc/AppClass.h
-        smc/Analyz.h
+        Analyz.h
         ${SMC_OUT_CPP}
         ${SMC_OUT_H}
         regex/Regex.cpp

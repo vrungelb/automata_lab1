@@ -70,18 +70,18 @@ NameFirst
 }
 NameRest
 {
-    symbol(c : char) [ctxt.isAlnum(c)]    NameRest      { addNameChar(c); }
-    symbol(c : char) [c == 91]     CountFirst    {}
+    symbol(c : char) [ctxt.isAlnum(c) && ctxt.nameLen() < 16]    NameRest      { addNameChar(c); }
+    symbol(c : char) [c == 91]                                    CountFirst    {}
 }
 CountFirst
 {
-    symbol(c : char) [ctxt.isNonZero(c)]    CountRest    { addCountChar(c); }
+    symbol(c : char) [ctxt.isNonZero(c)]                          CountRest     { addCountChar(c); }
 }
 
 CountRest
 {
-    symbol(c : char) [ctxt.isDigit(c)]   CountRest      { addCountChar(c); }
-    symbol(c : char) [c == 93]         ExpectEqual    {}
+    symbol(c : char) [ctxt.isDigit(c) && ctxt.countLen() < 9]     CountRest     { addCountChar(c); }
+    symbol(c : char) [c == 93]                                    ExpectEqual   {}
 }
 ExpectEqual
 {
@@ -102,9 +102,9 @@ LitAfterMinus
 }
 LitDigits
 {
-    symbol(c : char) [ctxt.isDigit(c)]  LitDigits    {}
-    symbol(c : char) [c == ',']  LitStart     {}
-    symbol(c : char) [c == '}']  final          {}
+    symbol(c : char) [ctxt.isDigit(c)]                                    LitDigits    {}
+    symbol(c : char) [c == ',' && ctxt.litCount() < ctxt.declaredCount()] LitStart     {}
+    symbol(c : char) [c == '}']                                           final        {}
 }
 final
 {

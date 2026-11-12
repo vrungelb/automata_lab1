@@ -2,13 +2,14 @@
 
 AppClass::AppClass()
     : _fsm(*this)
+    , _countLen(0)
     , _litCount(0)
     , _declaredCount(0)
 {}
 bool AppClass::checkString(std::string& str)
 {
     _arrName.clear();
-    _countStr.clear();
+    _countLen = 0;
     _litCount = 0;
     _declaredCount = 0;
     _fsm.setState(Map1::Start);
@@ -25,12 +26,7 @@ bool AppClass::checkString(std::string& str)
     isAcceptable = isAcceptable && (_litCount == _declaredCount);
 
     if (isAcceptable) {
-        if (!types.contains(_arrName)) {
-            types[_arrName] = _currentType;
-        } else {
-            conflicts.insert(_arrName + " - " + types[_arrName]);
-        }
-        params[_arrName]++;
+        recordValid(_arrName, _currentType);
     }
     return isAcceptable;
 }

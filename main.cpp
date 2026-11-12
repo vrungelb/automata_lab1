@@ -4,13 +4,27 @@
 #include "chrono"
 #include "filesystem"
 #include "regex/Regex.h"
-#include "smc/Analyz.h"
+#include "Analyz.h"
 #include "smc/AppClass.h"
 #include "flex/Flex.h"
 #include "strgen/strgen.h"
 #include "bench/Bench.h"
 
 using namespace statemap;
+
+static void writeResults(std::ostream& os, const Analyz* analyzer) {
+    os << "--- Variables Table ---" << std::endl;
+    os << analyzer->getTable() << std::endl;
+    os << "--- Conflicts ---" << std::endl;
+    const auto& conflicts = analyzer->getConflicts();
+    if (conflicts.empty()) {
+        os << "None" << std::endl;
+    } else {
+        for (const std::string& conflictLine : conflicts) {
+            os << conflictLine << std::endl;
+        }
+    }
+}
 
 // меню действий над выбранным движком, выходит при выборе "back"
 static void engineMenu(Analyz* analyzer, const std::string& name) {
@@ -56,18 +70,7 @@ static void engineMenu(Analyz* analyzer, const std::string& name) {
                     break;
                 }
 
-                out << "--- Variables Table ---" << std::endl;
-                out << analyzer->getTable() << std::endl;
-
-                out << "--- Conflicts ---" << std::endl;
-                if (analyzer->conflicts.empty()) {
-                    out << "None" << std::endl;
-                } else {
-                    for (const std::string& conflictLine : analyzer->conflicts) {
-                        out << conflictLine << std::endl;
-                    }
-                }
-
+                writeResults(out, analyzer);
                 out.close();
                 std::cout << "Successfully written to " << outName << std::endl;
                 break;
@@ -79,16 +82,7 @@ static void engineMenu(Analyz* analyzer, const std::string& name) {
                 std::cout << "Result: " << (analyzer->checkString(str) ? "ACCEPTABLE" : "NOT ACCEPTABLE") << std::endl;
                 break;
             case 4:
-                std::cout << "--- Variables Table ---" << std::endl;
-                std::cout << analyzer->getTable() << std::endl;
-                std::cout << "--- Conflicts ---" << std::endl;
-                if (analyzer->conflicts.empty()) {
-                    std::cout << "None" << std::endl;
-                } else {
-                    for (const std::string& conflictLine : analyzer->conflicts) {
-                        std::cout << conflictLine << std::endl;
-                    }
-                }
+                writeResults(std::cout, analyzer);
                 break;
             case 5: {
                 int genMode = 0;
